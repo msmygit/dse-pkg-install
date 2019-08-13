@@ -1,0 +1,4 @@
+# Package installation related items
+- name: db-prep package install
+  import_tasks: package/install.yml
+  when: dse_install_type == 'package'

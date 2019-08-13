@@ -1,0 +1,37 @@
+# Package installation related items
+- name: Install DataStax Agent repository
+  yum_repository:
+    name: opscenter
+    description: DataStax Repo for DataStax Agent
+    baseurl: https://rpm.datastax.com/enterprise/
+    username: "{{ dse_download_username }}"
+    password: "{{ dse_download_password }}"
+    gpgcheck: true
+    gpgkey: https://rpm.datastax.com/rpm/repo_key
+    enabled: false
+
+- name: Install DataStax Agent
+  yum:
+    name: "datastax-agent-{{ dse_version }}-1"
+    enablerepo: opscenter
+    state: installed
+
+- name: create some directories - package install
+  file: path={{item}} state=directory owner={{ dse_service_account_user }} group={{ dse_service_account_group }} mode="0755"
+  with_items:
+    - "{{ dse_agent_directory }}"
+    - "{{ dse_agent_conf_directory }}"
+    - "{{ dse_agent_log_directory }}"
+    - "{{ dse_agent_backup_staging_directory }}"
+    - "{{ dse_agent_backup_storage_directory }}"
+    - "{{ dse_agent_tmp_directory }}"
+  when: dse_install_type == 'package'
+
+- name: Template address.yaml
+  template:
+    src: "templates/{{ dse_version }}/address.yaml.j2"
+    dest: "{{ dse_agent_conf_directory }}/address.yaml"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+  notify: restart-agent

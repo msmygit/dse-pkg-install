@@ -1,0 +1,20 @@
+# Package installation related items
+
+- name: Install DataStax OpsCenter repository for package install
+  yum_repository:
+    name: opscenter
+    description: DataStax Repo for DataStax OpsCenter and Agent
+    baseurl: https://rpm.datastax.com/enterprise/
+    username: "{{ dse_download_username }}"
+    password: "{{ dse_download_password }}"
+    gpgcheck: true
+    gpgkey: https://rpm.datastax.com/rpm/repo_key
+    enabled: false
+  when: dse_install_type == 'package'
+
+- name: Install DataStax OpsCenter for package install
+  yum:
+    name: "opscenter-{{ opscenter.active_version }}"
+    enablerepo: opscenter
+    state: installed
+  when: dse_install_type == 'package'

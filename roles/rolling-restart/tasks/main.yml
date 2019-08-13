@@ -1,0 +1,13 @@
+- name: Restart DSE
+  shell: |
+    sudo service dse restart
+  args:
+    warn: false
+  when: dse_install_type == 'package'
+
+- name: Wait for DSE service to start
+  wait_for:
+    port: 9042
+    timeout: 1200
+    host: "{{ ansible_default_ipv4['address'] }}"
+  when: dse_install_type == 'package' 

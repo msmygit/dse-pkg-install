@@ -1,0 +1,27 @@
+---
+- name: Install EPEL repository
+  yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: installed
+
+- name: Install libaio
+  yum:
+    name: libaio
+    state: installed
+
+- name: Install DataStax repository
+  yum_repository:
+    name: datastax
+    description: DataStax Repo for DataStax Enterprise
+    baseurl: https://rpm.datastax.com/enterprise/
+    username: "{{ dse_download_username }}"
+    password: "{{ dse_download_password }}"
+    gpgcheck: true
+    gpgkey: https://rpm.datastax.com/rpm/repo_key
+    enabled: false
+
+- name: Install DataStax Enterprise
+  yum:
+    name: "dse-full-{{ dse_version }}-1"
+    enablerepo: datastax
+    state: installed

@@ -1,0 +1,41 @@
+- name: create staging-area directory
+  file: path={{ item }} state=directory owner="{{ creds.service_user }}" group="{{ creds.service_user }}"
+  with_items:
+    - /opt/datastax/staging-area
+  when: dse_install_type == 'tarball'
+
+- name: downloading Agent
+  get_url: url=http://downloads.datastax.com/enterprise/datastax-agent-{{ item }}.tar.gz
+           dest=/opt/datastax/staging-area/datastax-agent-{{ item }}.tar.gz
+           owner="{{ creds.service_user }}"
+           group="{{ creds.service_user }}"
+  with_items: "{{ agent.stage_versions }}"
+  when: dse_install_type == 'tarball'
+
+- name: downloading DSE Versions for Cluster
+  get_url: url=http://downloads.datastax.com/enterprise/dse-{{ item }}-bin.tar.gz
+           dest=/opt/datastax/staging-area/dse-{{ item }}.tar.gz
+           owner="{{ creds.service_user }}"
+           group="{{ creds.service_user }}"
+  with_items: "{{ dse.stage_versions }}"
+  when: dse_install_type == 'tarball'
+
+
+- name: downloading DSE Versions for Storage Cluster
+  get_url: url=http://downloads.datastax.com/enterprise/dse-{{ item }}-bin.tar.gz
+           dest=/opt/datastax/staging-area/dse-{{ item }}.tar.gz
+           owner="{{ creds.service_user }}"
+           group="{{ creds.service_user }}"
+  with_items: "{{ store.stage_versions }}"
+  # Only download if it's different than the monitored cluster version
+  when:
+    - ({{ dse.stage_versions }} != {{ store.stage_versions }})
+    - dse_install_type == 'tarball'
+
+- name: downloading OpsCenter
+  get_url: url=http://downloads.datastax.com/enterprise/opscenter-{{ item }}.tar.gz
+           dest=/opt/datastax/staging-area/opscenter-{{ item }}.tar.gz
+           owner="{{ creds.service_user }}"
+           group="{{ creds.service_user }}"
+  with_items: "{{ opscenter.stage_versions }}"
+  when: dse_install_type == 'tarball'

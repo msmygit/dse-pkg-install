@@ -1,0 +1,14 @@
+---
+opscenter_service_account_user: opscenter
+opscenter_service_account_group: opscenter
+
+opscenter_install_directory: /etc/opscenter
+opscenter_lib_directory: /var/lib/opscenter
+opscenter_log_directory: /var/log/opscenter
+opscenter_run_files_directory: /var/run/opscenter
+opscenter_binary_files_directory: /usr/share/opscenter
+opscenter_doc_directory: /usr/share/doc/opscenter
+opscenter_clusters_directory: "{{ opscenter_install_directory }}/clusters"
+
+opscenter_failover_directory: "{{ opscenter_lib_directory }}/failover"
+opscenter_primary_location_file: "{{ opscenter_failover_directory }}/primary_opscenter_location"

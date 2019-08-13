@@ -1,0 +1,35 @@
+- name: create mount directories
+  file: path={{item}} state=directory owner=cassandra group=cassandra
+  with_items:
+    - /db/cassandra
+
+- name: installing logical volume manager
+  apt: 
+    name: lvm2
+    state: present 
+    update_cache: yes
+
+- name:  Create volume group
+  lvg: 
+    vg: dbvg 
+    pvs: "{{db_disks}}"
+
+- name:  Create a logical volume
+  lvol: 
+    vg: dbvg 
+    lv: lvoldb 
+    size: 90%VG 
+    opts: -i "{{num_disks}}" -I 128
+
+- name:  Create a filesystem
+  filesystem: 
+    fstype: ext4 
+    dev: /dev/dbvg/lvoldb
+
+- name:  mount filesystem
+  mount: 
+    name: /db/cassandra 
+    src: /dev/dbvg/lvoldb 
+    fstype: ext4  
+    state: mounted
+

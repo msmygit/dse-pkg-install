@@ -1,0 +1,51 @@
+#
+# Conditionals and configuration
+
+# If set to true, this will build a separate metrics cluster [store] variables and
+# configure the agents and OpsCenter to monitor and store metrics in that cluster. If 
+# set to false ensure that the [store] inventory group still has hosts so that the agent
+# has entries to store metrics. i.e. add the hosts entries from the cluster
+metrics_cluster: true
+
+# What is the type of installation. "tarball" or "package".
+# Only "package" is fully supported as of now.
+dse_install_type: package
+
+#
+# Usernames and Credentials
+creds:
+  remote_user: dseadmin
+  service_user: dseadmin
+
+#
+# OS Specific Variables
+limits:
+  memlock: unlimited
+  as: unlimited
+  nproc: 32768
+  nofile: 1048576
+
+#
+# DSE Specific Variables
+store:
+  # stage_versions: ["6.7.4","6.7.5"]
+  stage_versions: ["6.7.4"]
+  active_version: "6.7.4"
+
+dse:
+  stage_versions: ["6.7.4"]
+  active_version: "6.7.4"
+
+agent:
+  stage_versions: ["6.7.4"]
+  active_version: "6.7.4"
+
+opscenter:
+  stage_versions: ["6.7.4"]
+  active_version: "6.7.4"
+  authentication: true
+
+java:
+  version: 8
+  max_heap_size: 2G
+  heap_newsize: 300M

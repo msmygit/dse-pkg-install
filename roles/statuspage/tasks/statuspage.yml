@@ -1,0 +1,22 @@
+- name: deploy metrics config 
+  template: src=metrics.conf.j2 dest=/opt/datastax/scripts/metrics.conf owner=cassandra group=cassandra
+
+- name: deploy metrics script
+  copy: src=metrics.py dest=/opt/datastax/scripts/metrics.py owner=cassandra group=cassandra mode="0755"
+
+- name: deploy a sla-checker script
+  copy: src=sla-checker.py dest=/opt/datastax/scripts/sla-checker.py owner=cassandra group=cassandra mode="0755"
+
+- name: create a cron job
+  cron: 
+    name: "post metrics" 
+    minute: "*/3" 
+    job: "/opt/datastax/scripts/metrics.py>>/opt/datastax/scripts/metrics.log 2>&1"
+
+- name: create a sla-checker cron job
+  cron: 
+    name: "sla-checker" 
+    minute: "*/3" 
+    job: "/opt/datastax/scripts/sla-checker.py>>/opt/datastax/scripts/sla-checker.log 2>&1"
+
+

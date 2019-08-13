@@ -1,0 +1,249 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          opscenterd
+# Required-Start:    $network $local_fs $remote_fs $named $syslog $time
+# Required-Stop:     $network $local_fs $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Cassandra cluster manager
+### END INIT INFO
+
+# Author: paul cannon <paul@datastax.com>
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="Cassandra cluster manager"
+NAME=opscenter
+SCRIPTNAME="$0"
+
+OPSCENTER_SCRIPT="/opt/datastax/opscenter/opscenter-{{opscenter.active_version}}/bin/opscenter"
+PIDFILE="/var/run/opscenter/opscenter.pid"
+TMP_STARTUP_LOG="/var/log/opscenter/tmp_startup.log"
+
+# Internal variables
+NEED_NEWLINE=0
+VERBOSE="no"
+
+# Do we have lsb support?
+type log_daemon_msg >/dev/null 2>&1
+DONT_HAVE_LSB="$?"
+
+# Tells OpsCenter that this will handle backgrounding
+export OPSC_IS_PACKAGE=1
+
+# Read configuration variable file if it is present
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+
+# We like to let the user override these also
+USER="cassandra"
+if getent passwd opscenter >/dev/null; then
+    USER="opscenter"
+fi
+MYUID=$(id -u "$USER")
+MYGID=$(id -g "$USER")
+export OPSC_HOME=$(getent passwd $MYUID | cut -d ':' -f 6)
+
+# Load the VERBOSE setting and other rcS variables
+[ -r /lib/init/vars.sh ] && . /lib/init/vars.sh
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+# Example: http://refspecs.linuxbase.org/LSB_4.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptfunc.html
+[ -r /lib/lsb/init-functions ] && . /lib/lsb/init-functions
+
+[ -d /var/run/opscenter ] || (mkdir /var/run/opscenter && chown $USER:$USER /var/run/opscenter)
+[ -d /opt/datastax/opscenter/tmp ] || (mkdir /opt/datastax/opscenter/tmp && chown $USER:$USER /opt/datastax/opscenter/tmp)
+
+export USER_GROUP="$MYUID:$MYGID"
+
+#
+# Function that prints a "daemon" message or log_daemon_msg if possible
+log_message_daemon() {
+  if [ "$DONT_HAVE_LSB" -eq 0 ]; then
+      log_daemon_msg "$1" "$2"
+  else
+      echo -n $1 : $2
+  fi
+  NEED_NEWLINE=1
+}
+
+#
+# Function that prints a "success" message or log_success_msg if possible
+log_message_success() {
+  if [ "$DONT_HAVE_LSB" -eq 0 ]; then
+      log_success_msg "$@"
+  else
+      echo "$@"
+  fi
+}
+
+#
+# Function that prints a "failure" message or log_failure_msg if possible
+log_message_failure() {
+  if [ "$DONT_HAVE_LSB" -eq 0 ]; then
+      log_failure_msg "$@"
+  else
+      echo "$@"
+  fi
+}
+
+#
+# Function that prints a regular message or log_daemon_msg if possible
+log_message() {
+  if [ "$NEED_NEWLINE" -eq 1 ]; then
+      echo ""
+      NEED_NEWLINE=0
+  fi
+  if [ "$DONT_HAVE_LSB" -eq 0 ]; then
+      echo "$@"
+  else
+      echo "$@"
+  fi
+}
+
+#
+# Function that sets an error code and wraps up the line
+log_message_end() {
+  if [ "$DONT_HAVE_LSB" -eq 0 ]; then
+      log_end_msg "$@"
+  else
+      if [ "$NEED_NEWLINE" -eq 1 ]; then
+          if [ "$1" -eq 0 ]; then
+              echo " OK"
+          else
+              echo " Failed"
+          fi
+          NEED_NEWLINE=0
+      fi
+      RETVAL="$1"
+  fi
+}
+
+#
+# Function that prints a debug message
+log_message_debug() {
+  if [ "$VERBOSE" != "no" ]; then
+      if [ "$NEED_NEWLINE" -eq 1 ]; then
+          echo ""
+          NEED_NEWLINE=0
+      fi
+      echo "$@"
+  fi
+}
+
+is_running()
+{
+    if [ -f "$PIDFILE" ]; then
+        PID=$(cat "$PIDFILE" 2>/dev/null)
+        grep -q "$TAC" "/proc/$PID/cmdline" 2>/dev/null && return 0
+        return 1
+    fi
+    return 3
+}
+
+do_start()
+{
+    # Return
+    #   0 if daemon has been started
+    #   1 if daemon was already running
+    #   2 if daemon could not be started
+
+    is_running && return 1
+
+    # Daemonize
+    start-stop-daemon --chuid $USER_GROUP --background --make-pidfile --pidfile $PIDFILE --start \
+          --startas /bin/bash -- -c "truncate --size 0 $TMP_STARTUP_LOG && exec $OPSCENTER_SCRIPT > $TMP_STARTUP_LOG 2>&1"
+
+    RETVAL=$?
+    [[ $RETVAL -gt 0 ]] && return 2
+
+    # Ensure error message can have time to display
+    sleep 1
+    cat $TMP_STARTUP_LOG && rm $TMP_STARTUP_LOG
+
+    return 0
+}
+
+do_stop()
+{
+    # Return
+    #   0 if daemon has been stopped
+    #   1 if daemon was already stopped
+    #   2 if daemon could not be stopped
+    #   other if a failure occurred
+
+    is_running || return 1
+
+    start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 \
+        --pidfile $PIDFILE
+    RETVAL="$?"
+    [ "$RETVAL" = 2 ] && return 2
+    rm -f "$PIDFILE"
+    return "$RETVAL"
+}
+
+case "$1" in
+  start)
+    [ "$VERBOSE" != no ] && log_message_daemon "Starting $DESC" "$NAME"
+    do_start
+    case "$?" in
+        0|1) [ "$VERBOSE" != no ] && log_message_end 0 ;;
+        2) [ "$VERBOSE" != no ] && log_message_end 1 ;;
+    esac
+  ;;
+  stop)
+    [ "$VERBOSE" != no ] && log_message_daemon "Stopping $DESC" "$NAME"
+    do_stop
+    case "$?" in
+        0|1) [ "$VERBOSE" != no ] && log_message_end 0 ;;
+        2) [ "$VERBOSE" != no ] && log_message_end 1 ;;
+    esac
+    ;;
+  status)
+    is_running
+    stat=$?
+    case "$stat" in
+      0) log_message_daemon "$DESC $NAME is running" ;;
+      1) log_message_daemon "could not access pidfile for $DESC $NAME" ;;
+      *) log_message_daemon "$DESC $NAME is not running" ;;
+    esac
+    exit "$stat"
+    ;;
+  #reload|force-reload)
+    #
+    # If do_reload() is not implemented then leave this commented out
+    # and leave 'force-reload' as an alias for 'restart'.
+    #
+    #log_daemon_msg "Reloading $DESC" "$NAME"
+    #do_reload
+    #log_end_msg $?
+    #;;
+  restart|force-reload)
+    #
+    # If the "reload" option is implemented then remove the
+    # 'force-reload' alias
+    #
+    log_message_daemon "Restarting $DESC" "$NAME"
+    do_stop
+    case "$?" in
+      0|1)
+        do_start
+        case "$?" in
+            0) log_message_end 0 ;;
+            1) log_message_end 1 ;; # Old process is still running
+            *) log_message_end 1 ;; # Failed to start
+        esac
+        ;;
+      *)
+        # Failed to stop
+        log_message_end 1
+        ;;
+    esac
+    ;;
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
+    exit 3
+    ;;
+esac
+
+:
+

@@ -1,0 +1,78 @@
+# DSE Specific Variables
+dse_solr: 0
+dse_spark: 0
+dc: dc2
+rack: not-used
+
+# New package related variables
+
+dse_install_type: package
+dse_install_via: online
+
+# The below should be same for DSE and Agent
+dse_service_account_user: cassandra
+dse_service_account_group: cassandra
+
+dse_download_tarball_url: http://downloads.datastax.com/enterprise
+dse_download_username:
+dse_download_password:
+dse_download_local_path: /tmp
+
+dse_version: 6.7.4
+
+#cassandra-rackdc.properties
+dse_datacenter: dc2
+
+#cassandra.yaml
+dse_cluster_name: OrionDSEDev
+dse_num_tokens: 8
+dse_allocate_tokens_for_local_replication_factor: 3
+dse_hints_directory: /var/lib/cassandra/hints
+dse_data_file_directories: /var/lib/cassandra/data
+dse_commitlog_directory: /var/lib/cassandra/commitlog
+dse_cdc_raw_directory: /var/lib/cassandra/cdc_raw
+dse_saved_caches_directory: /var/lib/cassandra/saved_caches
+dse_seeds: "{{ groups['clusterseeds'] | join(',') }}"
+dse_listen_address: "{{ ansible_default_ipv4['address'] }}"
+dse_native_transport_address: "{{ ansible_default_ipv4['address'] }}"
+dse_rpc_address: "{{ ansible_default_ipv4['address'] }}"
+dse_endpoint_snitch: GossipingPropertyFileSnitch
+
+#dse.yaml
+dse_max_solr_concurrency_per_core: 2
+dse_solr_data_directory: /var/lib/solr
+dse_dsefs_enabled: true
+dse_dsefs_keyspace_name: "dsefs_{{ dse_datacenter }}"
+dse_dsefs_work_directory: /var/lib/dsefs
+dse_dsefs_data_directories: /var/lib/dsefs/data
+dse_alwayson_sql_options_enabled: true
+
+dse_graph_enabled: 0
+dse_solr_enabled: 0
+dse_spark_enabled: 1
+
+#jvm.options
+dse_xmx: 4G
+dse_xms: 4G
+dse_parallel_gc_threads: "{{ hostvars[inventory_hostname]['ansible_facts']['processor_cores'] }}"
+dse_conc_gc_threads: "{{ hostvars[inventory_hostname]['ansible_facts']['processor_cores'] }}"
+dse_log_directory: /var/log/cassandra
+dse_gc_log_file: "{{ dse_log_directory }}/gc.log"
+
+dse_disks: []
+dse_disk_rotational: 0
+dse_disk_scheduler: deadline
+dse_disk_read_ahead_kb: 8
+
+dse_conf_directory: "/etc/dse"
+dse_cassandra_conf_directory: "/etc/dse/cassandra"
+dse_spark_conf_directory: "/etc/dse/spark"
+dse_collectd_conf_directory: "/etc/dse/collectd"
+
+#Agent related items
+dse_agent_directory: "/var/lib/datastax-agent"
+dse_agent_conf_directory: "{{ dse_agent_directory }}/conf"
+dse_agent_log_directory: "/var/log/datastax-agent"
+dse_agent_backup_staging_directory: "{{ dse_agent_directory }}/commitlogs"
+dse_agent_backup_storage_directory: "{{ dse_agent_directory }}/backups"
+dse_agent_tmp_directory: "{{ dse_agent_directory }}/tmp"

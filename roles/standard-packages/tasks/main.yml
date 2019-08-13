@@ -1,0 +1,29 @@
+#- name: adding openJDK repository
+#  yum_repository: repo='ppa:openjdk-r/ppa' state=present
+
+- name: installing some useful packages like ntp, curl, vim, sysstat, etc.,
+  yum: 
+    name: ['ntp', 'curl', 'vim', 'sysstat', 'jna', 'redhat-lsb-core']
+    # skipping 'libjna-java', 'python-software-properties'
+    state: present 
+    update_cache: yes
+
+- name: install OpenJDK java {{ java.version }}
+  yum: 
+    name: java-1.{{ java.version }}.0-openjdk
+    state: latest
+
+#- name: update java path alternatives
+#  alternatives: name=java path=/usr/lib/jvm/java-{{ java.version }}-openjdk-amd64/jre/bin/java link=/usr/bin/java
+
+- name: create some directories
+  file: path={{ item }} state=directory owner="{{ creds.service_user }}" group="{{ creds.service_user }}"
+  with_items:
+    - /opt/datastax/downloads
+    - /opt/datastax/status
+    - /opt/datastax/dse
+    - /opt/datastax/agents
+    - /opt/datastax/scripts
+    - /etc/opt/datastax
+    - /var/lib/datastax-agent
+    - /var/log/cassandra

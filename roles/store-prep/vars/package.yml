@@ -1,0 +1,5 @@
+---
+dse_conf_directory: "/etc/dse"
+dse_cassandra_conf_directory: "/etc/dse/cassandra"
+dse_spark_conf_directory: "/etc/dse/spark"
+dse_collectd_conf_directory: "/etc/dse/collectd"

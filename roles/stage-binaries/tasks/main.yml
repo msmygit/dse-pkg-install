@@ -1,0 +1,4 @@
+# Conditional execution of staging binaries
+- name: Copy binaries to OpsCenter host
+  import_tasks: stage-binaries.yml
+  when: stage_binaries

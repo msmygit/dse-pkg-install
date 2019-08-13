@@ -1,0 +1,45 @@
+- name: Check if {{ creds.service_user }} already exists
+  stat: path=/home/{{ creds.service_user }}
+  register: service_user_dir
+
+- name: creating UNIX group
+  group: name={{ creds.service_user }}
+  when: service_user_dir.stat.isdir is defined and service_user_dir.stat.isdir
+
+- name: creating UNIX user
+  user: name={{ creds.service_user }} comment="DSE service user" uid=8500 group={{ creds.service_user }}
+  when: service_user_dir.stat.isdir is defined and service_user_dir.stat.isdir
+  ignore_errors: true
+  # The ignore_errors is added purposefully if the service user already exists
+
+- name: Updating pam_limits such as memlock, nofile, nprox & as values - package install
+  pam_limits: domain=cassandra limit_type=soft limit_item=memlock value={{limits.memlock}}  
+- pam_limits: domain=cassandra limit_type=hard limit_item=memlock value={{limits.memlock}}
+- pam_limits: domain=cassandra limit_type=soft limit_item=nofile value={{limits.nofile}}
+- pam_limits: domain=cassandra limit_type=hard limit_item=nofile value={{limits.nofile}}
+- pam_limits: domain=cassandra limit_type=soft limit_item=nproc value={{limits.nproc}}
+- pam_limits: domain=cassandra limit_type=hard limit_item=nproc value={{limits.nproc}}
+- pam_limits: domain=cassandra limit_type=soft limit_item=as value={{limits.as}}
+- pam_limits: domain=cassandra limit_type=hard limit_item=as value={{limits.as}}
+
+# Applying RHEL specific settings
+- name: Modifying kernel settings
+  sysctl: name="vm.max_map_count" value=1048575 sysctl_set=yes state=present reload=yes
+
+- sysctl: name="net.ipv4.tcp_keepalive_time" value=60 sysctl_set=yes state=present reload=yes
+- sysctl: name="net.ipv4.tcp_keepalive_probes" value=3 sysctl_set=yes state=present reload=yes
+- sysctl: name="net.ipv4.tcp_keepalive_intvl" value=10 sysctl_set=yes state=present reload=yes
+- sysctl: name="net.core.rmem_max" value=16777216 sysctl_set=yes state=present reload=yes
+- sysctl: name="net.core.wmem_max" value=16777216 sysctl_set=yes state=present reload=yes
+- sysctl: name="net.core.rmem_default" value=16777216 sysctl_set=yes state=present reload=yes
+- sysctl: name="net.core.wmem_default" value=16777216 sysctl_set=yes state=present reload=yes
+- sysctl: name="net.core.optmem_max" value=40960 sysctl_set=yes state=present reload=yes
+- sysctl: name="net.ipv4.tcp_rmem" value="4096 87380 16777216" sysctl_set=yes state=present reload=yes
+- sysctl: name="net.ipv4.tcp_wmem" value="4096 65536 16777216" sysctl_set=yes state=present reload=yes
+- sysctl: name="vm.swappiness" value=1 sysctl_set=yes state=present reload=yes
+
+- name: Disable zone_reclaim_mode on NUMA systems
+  shell: echo 0 > /proc/sys/vm/zone_reclaim_mode
+
+- name: Disable defrag in Java Transparent Hugepages
+  shell: echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag

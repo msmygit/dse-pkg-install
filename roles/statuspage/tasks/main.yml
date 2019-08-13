@@ -1,0 +1,4 @@
+# Conditional execution of role
+- name: Configure SLA Checker and metrics push to statuspage 
+  import_tasks: statuspage.yml
+  when: configure_statuspage 

@@ -1,0 +1,28 @@
+# This play will build the entire site, OpsCenter, Agents and 2 Clusters
+
+- hosts: store
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  roles:
+  - store-configure
+
+- hosts: DC1,DC2
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  roles:
+  - db-configure
+
+- hosts: storeseeds,clusterseeds
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  serial: 1
+  roles:
+  - rolling-restart
+
+- hosts: store,DC1,DC2
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  serial: 1
+  roles:
+  - rolling-restart
+

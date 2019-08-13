@@ -1,0 +1,107 @@
+- name: Printing some debug information at the store-configure beginning
+  debug:
+    msg: "Value for dse_install_type: {{ dse_install_type }}"
+  when: dse_install_type is defined
+
+# package installation related items start
+- name: Template dse-env.sh
+  template:
+    src: "templates/{{ dse_version }}/dse-env.sh.j2"
+    dest: "{{ dse_conf_directory }}/dse-env.sh"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template dse.yaml
+  template:
+    src: "templates/{{ dse_version }}/dse.yaml.j2"
+    dest: "{{ dse_conf_directory }}/dse.yaml"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template cassandra.yaml
+  template:
+    src: "templates/{{ dse_version }}/cassandra.yaml.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/cassandra.yaml"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template cassandra-rackdc.properties
+  template:
+    src: "templates/{{ dse_version }}/cassandra-rackdc.properties.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/cassandra-rackdc.properties"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template jvm.options
+  template:
+    src: "templates/{{ dse_version }}/jvm.options.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/jvm.options"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template cassandra-env.sh
+  template:
+    src: "templates/{{ dse_version }}/cassandra-env.sh.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/cassandra-env.sh"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template logback.xml
+  template:
+    src: "templates/{{ dse_version }}/logback.xml.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/logback.xml"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Validate presence of collectd
+  stat:
+    path: "{{ dse_collectd_conf_directory }}"
+  when: dse_install_type == 'package'
+  register: collectd_check
+
+#- name: Template prometheus.conf
+#  template:
+#    src: "templates/{{ dse_version }}/prometheus.conf.j2"
+#    dest: "{{ dse_collectd_conf_directory }}/prometheus.conf"
+#    owner: "{{ dse_service_account_user }}"
+#    group: "{{ dse_service_account_group }}"
+#  when:
+#   - collectd_check.stat.exists
+#   - dse_install_type == 'package'
+
+- name: Template dse.default
+  template:
+    src: "templates/{{ dse_version }}/dse.default.j2"
+    dest: "/etc/default/dse"
+    owner: root
+    group: root
+  when: dse_install_type == 'package'
+
+- name: Create data directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+  with_items:
+    - "{{ dse_hints_directory }}"
+    - "{{ dse_data_file_directories }}"
+    - "{{ dse_commitlog_directory }}"
+    - "{{ dse_saved_caches_directory }}"
+    - "{{ dse_solr_data_directory }}"
+
+- name: Create logging directory
+  file:
+    path: "{{ dse_log_directory }}"
+    state: directory
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'

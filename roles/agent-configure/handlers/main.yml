@@ -1,0 +1,9 @@
+# Handlers for agent related notifications
+
+- name: restart-agent
+  #service: name=datastax-agent enabled=yes state=restarted
+  shell: |
+    sudo service datastax-agent restart
+  args:
+    warn: false
+  when: dse_install_type == 'package'

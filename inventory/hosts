@@ -1,0 +1,29 @@
+[opscenter]
+40.124.26.172 failover_role=active
+13.85.60.218 failover_role=passive
+
+[storeseeds]
+157.54.201.233 rack=rack1
+
+[storenonseeds]
+23.98.278.165 rack=rack2
+
+[store:children]
+storeseeds
+storenonseeds
+
+[clusterseeds]
+40.44.239.9
+40.84.139.112
+
+[cluster:children]
+DC1
+DC2
+
+[DC1]
+40.87.239.9 rack=rack1
+40.84.393.57 rack=rack2
+
+[DC2]
+102.214.117.55 rack=rack1
+401.84.199.112 rack=rack2

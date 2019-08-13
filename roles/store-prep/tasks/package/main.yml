@@ -1,0 +1,6 @@
+---
+- name: Load variables (Package)
+  include_vars:
+    file: package.yml
+- import_tasks: install.yml
+#- import_tasks: configure.yml

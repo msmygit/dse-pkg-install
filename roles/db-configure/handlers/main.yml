@@ -1,0 +1,4 @@
+# Handlers for dse related notifications
+
+- name: restart-dse
+  file: path=/opt/datastax/status/RESTART-REQUIRED state=touch owner=cassandra group=cassandra

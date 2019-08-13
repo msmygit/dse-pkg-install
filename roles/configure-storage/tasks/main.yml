@@ -1,0 +1,14 @@
+# Conditional execution of database storage using LVM2
+- name: Configure Disks for Database Storage
+  import_tasks: configure-storage.yml
+  when: configure_db_disks 
+
+- name: create some directories
+  file: path={{item}} state=directory owner=cassandra group=cassandra
+  with_items:
+    - /db/cassandra/data
+    - /db/cassandra/commitlog
+    - /db/cassandra/saved_caches
+    - /db/cassandra/hints
+
+

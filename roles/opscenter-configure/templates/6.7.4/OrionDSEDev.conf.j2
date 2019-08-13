@@ -1,0 +1,31 @@
+[kerberos]
+default_service =
+opscenterd_client_principal =
+opscenterd_keytab_location =
+agent_keytab_location =
+agent_client_principal =
+
+[agents]
+ssl_keystore_password =
+ssl_keystore =
+
+[jmx]
+password =
+port = 7199
+username =
+
+# Monitored cluster
+[cassandra]
+ssl_truststore_password =
+cql_port = 9042
+password =
+ssl_keystore_password =
+ssl_keystore =
+ssl_truststore =
+username = {{ creds.service_user }}
+seed_hosts = {% set comma = joiner(',') %}{% for host in groups['clusterseeds'] %}{{comma()}}{{hostvars[host]['ansible_default_ipv4']['address']}}{% endfor %}
+
+
+[storage_cassandra]
+keyspace=opsc_oriondsedev_storage
+seed_hosts = {% set comma = joiner(',') %}{% for host in groups['storeseeds'] %}{{comma()}}{{hostvars[host]['ansible_default_ipv4']['address']}}{% endfor %}

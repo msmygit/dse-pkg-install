@@ -1,0 +1,6 @@
+# Conditional execution of role
+- name: Configure software on metrics clusters
+  import_tasks: store-configure.yml
+  when:
+    - metrics_cluster
+    - dse_install_type == 'package'

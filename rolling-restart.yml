@@ -1,0 +1,17 @@
+# This play will perform a simple conditional rolling restart
+
+- hosts: storeseeds,clusterseeds
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  serial: 1
+  roles:
+  - rolling-restart
+  - agent-configure
+
+- hosts: store,DC1,DC2
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  serial: 1
+  roles:
+  - rolling-restart
+  - agent-configure

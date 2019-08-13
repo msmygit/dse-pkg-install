@@ -1,0 +1,3 @@
+- name: store-prep package install
+  import_tasks: package/install.yml
+  when: dse_install_type == 'package'

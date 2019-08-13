@@ -1,0 +1,56 @@
+# This play will build the entire site, OpsCenter, Agents and 2 Clusters
+
+- hosts: all
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  roles:
+  - os-settings
+  - standard-packages
+
+# Stage binaries on the OpsCenter host
+# - hosts: opscenter
+#  remote_user: "{{creds.remote_user}}"
+#  become: true
+#  roles:
+#  - stage-binaries
+
+# Configure DSE for configure clusters
+- hosts: store
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  roles:
+  - store-prep
+  - store-configure
+
+- hosts: DC1,DC2
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  roles:
+  - db-prep
+  - db-configure
+
+# Download and configure OpsCenter
+- hosts: opscenter
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  roles:
+  - opscenter-prep
+  - opscenter-configure
+
+# Finally Perform a rolling restart, seed nodes first
+# and start the agents 
+- hosts: storeseeds,clusterseeds
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  serial: 1
+  roles:
+  - rolling-restart
+  - agent-configure
+
+- hosts: store,DC1,DC2
+  remote_user: "{{creds.remote_user}}"
+  become: true
+  serial: 1
+  roles:
+  - rolling-restart
+  - agent-configure

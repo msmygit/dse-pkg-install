@@ -1,0 +1,92 @@
+#Package installation related items
+
+- name: Load variables (Package)
+  include_vars:
+    file: package.yml
+
+# https://docs.datastax.com/en/opscenter/6.7/opsc/reference/opscDebianFileLocate_r.html
+- name: create some directories - package install
+  file: path={{ item }} state=directory owner={{ opscenter_service_account_user }} group={{ opscenter_service_account_group }} mode="0755"
+  with_items:
+    - "{{ opscenter_lib_directory }}"
+    - "{{ opscenter_log_directory }}"
+    - "{{ opscenter_run_files_directory }}"
+    - "{{ opscenter_binary_files_directory }}"
+    - "{{ opscenter_doc_directory }}"
+    - "{{ opscenter_clusters_directory }}"
+  when: dse_install_type == 'package'
+
+- name: Template opscenterd.conf - package install
+  template:
+    src: "templates/{{ opscenter.active_version }}/opscenterd.conf.j2"
+    dest: "{{ opscenter_install_directory }}/opscenterd.conf"
+    owner: "{{ opscenter_service_account_user }}"
+    group: "{{ opscenter_service_account_group }}"
+  when: dse_install_type == 'package'
+  notify: restart-opscenter-package
+
+- name: Configuring storage cluster - package install
+  template:
+    src: "templates/{{ opscenter.active_version }}/OrionDSEDev.conf.j2"
+    dest: "{{ opscenter_install_directory }}/clusters/OrionDSEDev.conf"
+    owner: "{{ opscenter_service_account_user }}"
+    group: "{{ opscenter_service_account_group }}"    
+  when: dse_install_type == 'package'
+  notify: restart-opscenter-package
+
+- name: Check if failover directory exists on passive opscenter - package install
+  stat:
+    path: "{{ opscenter_failover_directory }}"
+  register: failover_dir
+  when:
+    - dse_install_type == 'package'
+    - failover_role == 'passive'
+
+- debug:
+    msg: "Failover directory {{ opscenter_failover_directory }} exists on passive opscenter {{ ansible_default_ipv4['address'] }} and is a directory"  
+  when:
+    - dse_install_type == 'package'
+    - failover_role == 'passive'
+    - failover_dir.stat.isdir is defined
+    - failover_dir.stat.isdir
+
+- name: create failover directory on passive opscenter - package install
+  file: path={{ item }} state=directory owner={{ opscenter_service_account_user }} group={{ opscenter_service_account_group }} mode="0755"
+  with_items:
+    - "{{ opscenter_failover_directory }}"
+  when:
+    - dse_install_type == 'package'
+    - failover_role == 'passive'
+    - failover_dir.stat.isdir is not defined
+    #- failover_dir.stat.isdir == False
+
+- name: create primary_opscenter_location under failover directory on passive opscenter - package install
+  file: path={{ item }} state=touch owner={{ opscenter_service_account_user }} group={{ opscenter_service_account_group }} mode="0755"
+  with_items:
+    - "{{ opscenter_primary_location_file }}"
+  when:
+    - dse_install_type == 'package'
+    - failover_role == 'passive'
+    - failover_dir.stat.isdir is defined
+    - failover_dir.stat.isdir
+  notify: restart-opscenter-package
+
+- name: Capture primary opscenter IP address - package install
+#  vars: 
+#    active_opsc_ip: "{{ ansible_default_ipv4['address'] }}"
+  debug:
+    var: "{{ ansible_default_ipv4['address'] }}"
+  register: active_opsc_ip
+  when:
+    - dse_install_type == 'package'
+    - failover_role == 'active'
+
+- name: Write primary opscenter IP address to backup opscenter file - package install
+  shell: echo {{ active_opsc_ip }} > "{{ opscenter_primary_location_file }}"
+  when:
+    - dse_install_type == 'package'
+    - failover_role == 'passive'
+    - failover_dir.stat.isdir is defined
+    - failover_dir.stat.isdir
+    - active_opsc_ip is defined
+  notify: restart-opscenter-package

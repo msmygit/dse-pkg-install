@@ -1,0 +1,94 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          datastax-agent
+# Required-Start:    $remote_fs $network $named $time
+# Required-Stop:     $remote_fs $network $named $time
+# Should-Start:      ntp mdadm
+# Should-Stop:       ntp mdadm
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: DataStax Agent
+# Description:       Datastax Agent
+### END INIT INFO
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+DESC="datastax agent"
+NAME=datastax-agent
+
+
+# Set this to your install location and remove the leading hashsign
+export AGENT_HOME=/opt/datastax/agents/datastax-agent-{{agent.active_version}}
+
+# Location of log output
+OUTPUT_FILE="/var/log/cassandra/datastax-agent.log"
+
+# Set the PID file location here
+PIDFILE=/var/run/$NAME/$NAME.pid
+
+# Agent uses Java to manage pidfiles
+PID=$PIDFILE
+export PID
+
+# Ths user to use for the service
+CASSANDRA_USER=cassandra
+
+. /lib/lsb/init-functions
+
+# limits
+ulimit -n {{limits.nofile}}
+ulimit -l {{limits.memlock}}
+ulimit -p {{limits.as}}
+
+
+OPTIONS=''
+
+PIDDIR=`dirname $PIDFILE`
+if [ ! -d "$PIDDIR" ]; then
+    mkdir -p "$PIDDIR"
+    if [ ! -d "$PIDDIR" ]; then
+        log_message_failure "$PIDDIR can not be found. Please create and make writable for user: $CASSANDRA_USER"
+        exit 5
+    fi
+fi
+owner=`stat -c %U "$PIDDIR"`
+if [ "$owner" != "$CASSANDRA_USER" ]; then
+    chown -R $CASSANDRA_USER "$PIDDIR"
+    owner=`stat -c %U "$PIDDIR"`
+    if [ "$owner" != "$CASSANDRA_USER" ]; then
+        log_message_failure "$PIDDIR is not owned by user: $CASSANDRA_USER. Please change ownership."
+        exit 5
+    fi
+fi
+
+
+case "$1" in
+    start)
+    log_daemon_msg "Starting $DESC"
+     start-stop-daemon -S  -v -c $CASSANDRA_USER -x "$AGENT_HOME/bin/datastax-agent" -d "$AGENT_HOME/bin" -p $PIDFILE -- $OPTIONS >> $OUTPUT_FILE
+     log_end_msg $?
+    ;;
+
+    stop)
+     log_daemon_msg "Stopping $DSEC"
+     start-stop-daemon -K -d $AGENT_HOME/bin -p $PIDFILE -R TERM/30/KILL/5
+     log_end_msg $?
+    ;;
+
+    restart)
+     log_daemon_msg "Restarting $DSEC"
+     start-stop-daemon -K -d $AGENT_HOME/bin -p $PIDFILE -R TERM/30/KILL/5
+     start-stop-daemon -S  -v -c $CASSANDRA_USER -x "$AGENT_HOME/bin/datastax-agent" -d "$AGENT_HOME/bin" -p $PIDFILE -- $OPTIONS -p $PIDFILE >> $OUTPUT_FILE
+     log_end_msg $?
+    ;;
+
+    status)
+    ;;
+
+    *)
+    echo "Usage: /etc/init.d/datastax-agent {start|stop|restart|status}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0
