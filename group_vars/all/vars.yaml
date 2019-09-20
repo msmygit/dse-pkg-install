@@ -29,12 +29,12 @@ limits:
 # DSE Specific Variables
 store:
   # stage_versions: ["6.7.4","6.7.5"]
-  stage_versions: ["6.7.4"]
-  active_version: "6.7.4"
+  stage_versions: ["6.7.5"]
+  active_version: "6.7.5"
 
 dse:
-  stage_versions: ["6.7.4"]
-  active_version: "6.7.4"
+  stage_versions: ["6.7.5"]
+  active_version: "6.7.5"
 
 agent:
   stage_versions: ["6.7.4"]

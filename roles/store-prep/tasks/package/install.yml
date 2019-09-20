@@ -3,11 +3,13 @@
   yum:
     name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     state: installed
+  when: dse_install_via == 'online'
 
 - name: Install libaio
   yum:
     name: libaio
     state: installed
+  when: dse_install_via == 'online'
 
 - name: Install DataStax repository
   yum_repository:
@@ -25,3 +27,13 @@
     name: "dse-full-{{ dse_version }}-1"
     enablerepo: datastax
     state: installed
+  when: dse_install_via == 'online'
+
+# Download https://rpm.datastax.com/enterprise/noarch/dse-full-6.7.5-1.noarch.rpm
+# and place it at /tmp directory prior to running this playbook
+- name: Installa DataStax Enterprise for offline package installation using previously downloaded RPM file
+  shell: |
+    rpm -i "{{ dse_download_local_path }}/dse-full-{{ dse_version }}-1.noarch.rpm"
+  args:
+    warn: false
+  when: dse_install_via == 'offline'

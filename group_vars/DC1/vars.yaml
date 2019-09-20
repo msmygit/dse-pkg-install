@@ -1,5 +1,4 @@
-#
-# DSE Specific Variables
+# DSE Specific Variables (unused section)
 dse_solr: 0
 dse_spark: 0
 dc: dc1
@@ -8,6 +7,7 @@ rack: not-used
 # New package related variables
 
 dse_install_type: package
+#supported values include "online" and "offline"
 dse_install_via: online
 
 # The below should be same for DSE and Agent
@@ -19,7 +19,7 @@ dse_download_username:
 dse_download_password:
 dse_download_local_path: /tmp
 
-dse_version: 6.7.4
+dse_version: 6.7.5
 
 #cassandra-rackdc.properties
 dse_datacenter: dc1

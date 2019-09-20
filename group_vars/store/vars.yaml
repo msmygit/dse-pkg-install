@@ -1,4 +1,4 @@
-# DSE Specific Variables
+# DSE Specific Variables (unused section)
 dse_solr: 0
 dse_spark: 0
 dc: dc1
@@ -8,6 +8,7 @@ dc: dc1
 # New package related variables
 
 dse_install_type: package
+#supported values include "online" and "offline"
 dse_install_via: online
 
 # The below should be same for DSE and Agent

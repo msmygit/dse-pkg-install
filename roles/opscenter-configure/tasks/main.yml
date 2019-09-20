@@ -27,8 +27,8 @@
 
 - name: Configuring storage cluster - package install
   template:
-    src: "templates/{{ opscenter.active_version }}/OrionDSEDev.conf.j2"
-    dest: "{{ opscenter_install_directory }}/clusters/OrionDSEDev.conf"
+    src: "templates/{{ opscenter.active_version }}/{{ dse_cluster_name }}.conf.j2"
+    dest: "{{ opscenter_clusters_directory }}/{{ dse_cluster_name }}.conf"
     owner: "{{ opscenter_service_account_user }}"
     group: "{{ opscenter_service_account_group }}"    
   when: dse_install_type == 'package'

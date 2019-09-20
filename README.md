@@ -2,11 +2,13 @@
 Inventory of playbooks and examples used to manage the day to day operational tasks of installing and configuring DataStax Enterprise software suite using package install method.
 
 At end of this exercise, we would have installed the following,
-* DSE `6.7.4` cluster with two datacenters
+* DSE `6.7.5` cluster with two datacenters
 * A 2-node DC1 with _C*_ only workload; A 2-node DC2 with _C* + Analytics_ workload
 * OpsCenter `6.7.4` with an active-passive setup (i.e. 2 VMs in total for running OpsCenter daemon)
-* A 2-node DSE `6.7.4` cluster dedicated for storing OpsCenter collection metrics data of the monitored cluster
+* A 2-node DSE `6.7.5` cluster dedicated for storing OpsCenter collection metrics data of the monitored cluster
 * Agents installed on all the DSE nodes
+* This playbook covers installation of DSE softwares both `online` and `offline` where, `online` refers to servers having
+internet connectivity and `offline` for servers without internet connectivity
 
 **_Note_**: This could be customized to deploy _N_-number of DCs with _N_-number of nodes with varying workloads.
 

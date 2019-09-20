@@ -15,6 +15,16 @@
     name: "datastax-agent-{{ dse_version }}-1"
     enablerepo: opscenter
     state: installed
+  when: dse_install_via == 'online'
+
+# Download https://rpm.datastax.com/enterprise/noarch/datastax-agent-6.7.4-1.noarch.rpm
+# and place it at /tmp directory prior to running this playbook
+- name: Installa DataStax Agent for offline package installation using previously downloaded RPM file
+  shell: |
+    rpm -i "{{ dse_download_local_path }}/datastax-agent-{{ opscenter.active_version }}-1.noarch.rpm"
+  args:
+    warn: false
+  when: dse_install_via == 'offline'
 
 - name: create some directories - package install
   file: path={{item}} state=directory owner={{ dse_service_account_user }} group={{ dse_service_account_group }} mode="0755"
