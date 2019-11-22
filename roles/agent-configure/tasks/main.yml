@@ -39,7 +39,7 @@
 
 - name: Template address.yaml
   template:
-    src: "templates/{{ dse_version }}/address.yaml.j2"
+    src: "templates/{{ opscenter.active_version }}/address.yaml.j2"
     dest: "{{ dse_agent_conf_directory }}/address.yaml"
     owner: "{{ dse_service_account_user }}"
     group: "{{ dse_service_account_group }}"
