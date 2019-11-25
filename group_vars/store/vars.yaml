@@ -26,7 +26,7 @@ dse_version: 6.7.4
 dse_datacenter: dc1
 
 #cassandra.yaml
-dse_cluster_name: OrionDSEDev_Storage_Cluster
+dse_cluster_name: OnionDSEDev_Storage_Cluster
 dse_num_tokens: 8
 dse_allocate_tokens_for_local_replication_factor: 3
 dse_hints_directory: /var/lib/cassandra/hints

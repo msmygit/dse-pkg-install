@@ -86,7 +86,7 @@ ansible-playbook -u <username> --ask-pass --ask-become-pass -i inventory/hosts b
 # Optionally use `-v` at the end of the command to run it in verbose mode (or) run it with `--check` option for a trial run (or) use `--syntax-check` to test syntax.
 ```
 
-### Start the metrics and multi-datacenter `OrionDSEDev` cluster
+### Start the metrics and multi-datacenter `OnionDSEDev` cluster
 ```
 ansible-playbook -i inventory/host rolling-restart.yml
 ```

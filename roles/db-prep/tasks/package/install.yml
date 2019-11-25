@@ -29,7 +29,7 @@
     state: installed
   when: dse_install_via == 'online'
 
-# Download https://rpm.datastax.com/enterprise/noarch/dse-full-6.7.5-1.noarch.rpm
+# Download https://rpm.datastax.com/enterprise/noarch/dse-full-6.7.6-1.noarch.rpm
 # and place it at /tmp directory prior to running this playbook
 - name: Installa DataStax Enterprise for offline package installation using previously downloaded RPM file
   shell: |
