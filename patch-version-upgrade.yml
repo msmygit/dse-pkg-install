@@ -1,0 +1,225 @@
+# This play will perform a patch version upgrade on an existing vnode enabled cluster.
+# Note: Can also leverage -> --limit "<IP>" or -i <IP>,
+
+# ansible-playbook -u <username> --ask-pass --ask-become-pass -i inventory/hosts patch-version-upgrade.yml --extra-vars "worker_jobs_killed=<y_or_n> dse_patch_version=<6.7.latest>" -vv
+
+- hosts: all
+  remote_user: "{{ creds.remote_user }}"
+  become: true
+  become_user: root
+  gather_facts: true
+
+- hosts: all
+  remote_user: "{{ creds.remote_user }}"
+  become: true
+  serial: 1
+  tasks:
+    - name: "Understanding repair job"
+      debug:
+        msg: "Manual anti-entropy repair could run for hours/days depending on various factors such as, but not limited to, the size of data on the node, network speed. Tables with NodeSync enabled will be skipped for repair operations."
+
+    - name: "Perform nodetool repair -pr -local on the node"
+      shell: "/usr/bin/nodetool repair -pr -local"
+      when:
+        - dse_install_type == 'package'
+
+- hosts: all
+  remote_user: "{{ creds.remote_user }}"
+  become: true
+  serial: 1
+  tasks:
+    - name: "Perform nodetool upgradesstables --jobs 0 on the node prior to upgrade"
+      shell: "/usr/bin/nodetool upgradesstables --jobs 0"
+      when:
+        - dse_install_type == 'package'
+
+- hosts: all
+  remote_user: "{{ creds.remote_user }}"
+  become: true
+  serial: 1
+  vars_prompt:
+    - name: worker_jobs_killed
+      prompt: "Have you killed all Spark worker jobs on all analytics DC nodes? Acceptable values are only 'y' and 'n'."
+      private: no
+
+    - name: dse_patch_version
+      prompt: "What is the latest DSE patch version to be installed? Enter just the numeric value; for example: 6.7.7"
+      private: no
+
+    #- name: config_compare
+    #  prompt: "Have you compared old & new version configs, removed deprecated settings and updated new settings on the files at /etc/dse_config_backup_{{ current_dse_version.stdout }}? Acceptable values are only 'y' and 'n'."
+    #  private: no
+  roles:
+    #- patch-upgrade-prep
+  tasks:
+    - name: "Disclaimer"
+      debug:
+        msg: "This playbook assumes there is NO differences between the .yaml, .conf & .sh files between the old and new patch versions. If there is a differece, a more manual approach is required."
+
+    - name: "Get the current installed DSE version"
+      shell: "/usr/bin/dse -v"
+      register: current_dse_version
+      when:
+        - dse_install_type == 'package'
+
+    - name: "Printing debug information for currently installed DSE version value:"
+      debug:
+        msg: "{{ current_dse_version.stdout }}"
+      when:
+        - current_dse_version is defined
+        - dse_install_type == 'package'
+
+    - name: "Creating backup directory, /etc/dse_config_backup_{{ current_dse_version.stdout }} to save existing configuration files"
+      file:
+        path: "/etc/dse_config_backup_{{ current_dse_version.stdout }}"
+        state: directory
+        mode: '0755'
+      when:
+        - current_dse_version is defined
+        - dse_install_type == 'package'
+
+    - name: "Backing up important configuration files"
+      copy:
+        src: "{{ item.src }}"
+        dest: "/etc/dse_config_backup_{{ current_dse_version.stdout }}"
+        mode: "0755"
+        owner: cassandra
+        group: cassandra
+        remote_src: yes
+      loop:
+        - { src: '/etc/default/dse' }
+        - { src: '/etc/dse/dse.yaml' }
+        - { src: '/etc/dse/dse-env.sh' }
+        - { src: '/etc/dse/cassandra/cassandra.yaml' }
+        - { src: '/etc/dse/cassandra/logback.xml' }
+        - { src: '/etc/dse/cassandra/cassandra-rackdc.properties' }
+        - { src: '/etc/dse/cassandra/cassandra-env.sh' }
+        - { src: '/etc/dse/cassandra/jvm.options' }
+        - { src: '/etc/dse/spark/spark-env.sh' }
+        - { src: '/etc/dse/spark/spark-daemon-defaults.conf' }
+        - { src: '/etc/dse/spark/hive-site.xml' }
+      when:
+        - current_dse_version is defined
+        - dse_install_type == 'package'
+
+    - name: "Perform nodetool drain on the node"
+      shell: "/usr/bin/nodetool drain"
+      when:
+        - dse_install_type == 'package'
+        - dse_patch_version is defined
+        - worker_jobs_killed is defined
+        - (worker_jobs_killed == 'y') or (worker_jobs_killed == 'n')
+
+    - name: "Stop current DSE version {{ current_dse_version.stdout }}"
+      shell: |
+        sudo service dse stop
+      args:
+        warn: false
+      when:
+        - dse_install_type == 'package'
+        - current_dse_version is defined
+        - dse_patch_version is defined
+        - worker_jobs_killed is defined
+        - (worker_jobs_killed == 'y') or (worker_jobs_killed == 'n')
+
+    - name: Install DataStax repository if it doesnt exist already
+      yum_repository:
+        name: datastax
+        description: DataStax Repo for DataStax Enterprise
+        baseurl: https://rpm.datastax.com/enterprise/
+        username: "{{ dse_download_username }}"
+        password: "{{ dse_download_password }}"
+        gpgcheck: no
+        gpgkey: https://rpm.datastax.com/rpm/repo_key
+        enabled: yes
+      when:
+        - dse_install_type == 'package'
+        - dse_patch_version is defined
+        - worker_jobs_killed is defined
+        - (worker_jobs_killed == 'y') or (worker_jobs_killed == 'n')
+
+    - name: "Install DataStax Enterprise {{ dse_patch_version }}"
+      yum:
+        name: "dse-full-{{ dse_patch_version }}-1"
+        enablerepo: datastax
+        state: installed
+      when:
+        - dse_install_type == 'package'
+        - dse_patch_version is defined
+        - worker_jobs_killed is defined
+        - (worker_jobs_killed == 'y') or (worker_jobs_killed == 'n')
+
+    - name: "Restoring important configuration files back to where it belongs"
+      copy:
+        src: "/etc/dse_config_backup_{{ current_dse_version.stdout }}/{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: "0755"
+        owner: cassandra
+        group: cassandra
+        remote_src: yes
+      loop:
+        - { src: 'dse', dest: '/etc/default/dse' }
+        - { src: 'dse.yaml', dest: '/etc/dse/dse.yaml' }
+        - { src: 'dse-env.sh', dest: '/etc/dse/dse-env.sh' }
+        - { src: 'cassandra.yaml', dest: '/etc/dse/cassandra/cassandra.yaml' }
+        - { src: 'logback.xml', dest: '/etc/dse/cassandra/logback.xml' }
+        - { src: 'cassandra-rackdc.properties', dest: '/etc/dse/cassandra/cassandra-rackdc.properties' }
+        - { src: 'cassandra-env.sh', dest: '/etc/dse/cassandra/cassandra-env.sh' }
+        - { src: 'jvm.options', dest: '/etc/dse/cassandra/jvm.options' }
+        - { src: 'spark-env.sh', dest: '/etc/dse/spark/spark-env.sh' }
+        - { src: 'spark-daemon-defaults.conf', dest: '/etc/dse/spark/spark-daemon-defaults.conf' }
+        - { src: 'hive-site.xml', dest: '/etc/dse/spark/hive-site.xml' }
+      when:
+        - current_dse_version is defined
+        - dse_install_type == 'package'
+        - dse_patch_version is defined
+        - worker_jobs_killed is defined
+        - (worker_jobs_killed == 'y') or (worker_jobs_killed == 'n')
+
+    - name: "Update the version number at dse.yaml, jvm.options and cassandra.yaml configuration files"
+      lineinfile:
+        path: "{{ item.destination }}"
+        regexp: '^# DSE Config Version:'
+        line: "# DSE Config Version: {{ current_dse_version.stdout }}"
+      loop:
+        - { destination: '/etc/dse/dse.yaml' }
+        - { destination: '/etc/dse/cassandra/cassandra.yaml' }
+        - { destination: '/etc/dse/cassandra/jvm.options' }
+      when:
+        - dse_install_type == 'package'
+        - current_dse_version is defined
+        - worker_jobs_killed is defined
+        - dse_patch_version is defined
+        - (worker_jobs_killed == 'y') or (worker_jobs_killed == 'n')
+
+    - name: "Start desired DSE version {{ dse_patch_version }}"
+      shell: |
+        sudo service dse start
+      args:
+        warn: false
+      when:
+        - dse_install_type == 'package'
+        - dse_patch_version is defined
+        - worker_jobs_killed is defined
+        - (worker_jobs_killed == 'y') or (worker_jobs_killed == 'n')
+
+    - name: Wait for DSE service to start
+      wait_for:
+        port: 9042
+        timeout: 1200
+        host: "{{ ansible_default_ipv4['address'] }}"
+      when:
+        - dse_install_type == 'package'
+        - dse_patch_version is defined
+        - worker_jobs_killed is defined
+        - (worker_jobs_killed == 'y') or (worker_jobs_killed == 'n')
+
+- hosts: all
+  remote_user: "{{ creds.remote_user }}"
+  become: true
+  serial: 1
+  tasks:
+    - name: "Perform nodetool upgradesstables --jobs 0 on the node post upgrade"
+      shell: "/usr/bin/nodetool upgradesstables --jobs 0"
+      when:
+        - dse_install_type == 'package'

@@ -86,6 +86,13 @@ ansible-playbook -u <username> --ask-pass --ask-become-pass -i inventory/hosts b
 # Optionally use `-v` at the end of the command to run it in verbose mode (or) run it with `--check` option for a trial run (or) use `--syntax-check` to test syntax.
 ```
 
+### Perform a patch upgrade. For e.g. upgrade from `6.7.6` to `6.7.7` version
+```
+ansible-playbook -u <username> --ask-pass --ask-become-pass -i inventory/hosts patch-version-upgrade.yml --extra-vars "worker_jobs_killed=<y_or_n> dse_patch_version=<6.7.latest>"
+
+# Optionally use `-v` at the end of the command to run it in verbose mode (or) run it with `--check` option for a trial run (or) use `--syntax-check` to test syntax.
+```
+
 ### Start the metrics and multi-datacenter `OnionDSEDev` cluster
 ```
 ansible-playbook -i inventory/host rolling-restart.yml
