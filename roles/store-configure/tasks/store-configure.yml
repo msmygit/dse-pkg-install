@@ -36,10 +36,50 @@
     group: "{{ dse_service_account_group }}"
   when: dse_install_type == 'package'
 
-- name: Template jvm.options
+- name: Template jvm-server.options
   template:
-    src: "templates/{{ dse_version }}/jvm.options.j2"
-    dest: "{{ dse_cassandra_conf_directory }}/jvm.options"
+    src: "templates/{{ dse_version }}/jvm-server.options.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/jvm-server.options"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template jvm-clients.options
+  template:
+    src: "templates/{{ dse_version }}/jvm-clients.options.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/jvm-clients.options"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template jvm8-server.options
+  template:
+    src: "templates/{{ dse_version }}/jvm8-server.options.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/jvm8-server.options"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template jvm8-clients.options
+  template:
+    src: "templates/{{ dse_version }}/jvm8-clients.options.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/jvm8-clients.options"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template jvm11-server.options
+  template:
+    src: "templates/{{ dse_version }}/jvm11-server.options.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/jvm11-server.options"
+    owner: "{{ dse_service_account_user }}"
+    group: "{{ dse_service_account_group }}"
+  when: dse_install_type == 'package'
+
+- name: Template jvm11-clients.options
+  template:
+    src: "templates/{{ dse_version }}/jvm11-clients.options.j2"
+    dest: "{{ dse_cassandra_conf_directory }}/jvm11-clients.options"
     owner: "{{ dse_service_account_user }}"
     group: "{{ dse_service_account_group }}"
   when: dse_install_type == 'package'

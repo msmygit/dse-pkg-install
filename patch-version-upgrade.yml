@@ -43,7 +43,7 @@
       private: no
 
     - name: dse_patch_version
-      prompt: "What is the latest DSE patch version to be installed? Enter just the numeric value; for example: 6.7.7"
+      prompt: "What is the latest DSE patch version to be installed? Enter just the numeric value; for example: 6.8.3"
       private: no
 
     #- name: config_compare
@@ -94,7 +94,12 @@
         - { src: '/etc/dse/cassandra/logback.xml' }
         - { src: '/etc/dse/cassandra/cassandra-rackdc.properties' }
         - { src: '/etc/dse/cassandra/cassandra-env.sh' }
-        - { src: '/etc/dse/cassandra/jvm.options' }
+        - { src: '/etc/dse/cassandra/jvm-server.options' }
+        - { src: '/etc/dse/cassandra/jvm-clients.options' }
+        - { src: '/etc/dse/cassandra/jvm8-server.options' }
+        - { src: '/etc/dse/cassandra/jvm8-clients.options' }
+        - { src: '/etc/dse/cassandra/jvm11-server.options' }
+        - { src: '/etc/dse/cassandra/jvm11-clients.options' }
         - { src: '/etc/dse/spark/spark-env.sh' }
         - { src: '/etc/dse/spark/spark-daemon-defaults.conf' }
         - { src: '/etc/dse/spark/hive-site.xml' }
@@ -165,7 +170,12 @@
         - { src: 'logback.xml', dest: '/etc/dse/cassandra/logback.xml' }
         - { src: 'cassandra-rackdc.properties', dest: '/etc/dse/cassandra/cassandra-rackdc.properties' }
         - { src: 'cassandra-env.sh', dest: '/etc/dse/cassandra/cassandra-env.sh' }
-        - { src: 'jvm.options', dest: '/etc/dse/cassandra/jvm.options' }
+        - { src: 'jvm.options', dest: '/etc/dse/cassandra/jvm-server.options' }
+        - { src: 'jvm.options', dest: '/etc/dse/cassandra/jvm-clients.options' }
+        - { src: 'jvm.options', dest: '/etc/dse/cassandra/jvm8-server.options' }
+        - { src: 'jvm.options', dest: '/etc/dse/cassandra/jvm8-clients.options' }
+        - { src: 'jvm.options', dest: '/etc/dse/cassandra/jvm11-server.options' }
+        - { src: 'jvm.options', dest: '/etc/dse/cassandra/jvm11-clients.options' }
         - { src: 'spark-env.sh', dest: '/etc/dse/spark/spark-env.sh' }
         - { src: 'spark-daemon-defaults.conf', dest: '/etc/dse/spark/spark-daemon-defaults.conf' }
         - { src: 'hive-site.xml', dest: '/etc/dse/spark/hive-site.xml' }

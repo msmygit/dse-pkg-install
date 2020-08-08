@@ -1,0 +1,7 @@
+stomp_interface: {% for host in groups['opscenter'] %}{% if hostvars[host]['failover_role'] == 'active' %}{{hostvars[host]['ansible_default_ipv4']['address']}}{% endif %}{% endfor %}
+
+use_ssl: 0
+backup_staging_dir: {{ dse_agent_backup_staging_directory }}
+backup_storage_dir: {{ dse_agent_backup_storage_directory }}
+tmp_dir: {{ dse_agent_tmp_directory }}
+cassandra_log_location: {{ dse_log_directory }}

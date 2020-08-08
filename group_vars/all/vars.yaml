@@ -30,19 +30,19 @@ limits:
 store:
   # stage_versions: ["6.7.5","6.7.6"]
   stage_versions: ["6.7.6"]
-  active_version: "6.7.6"
+  active_version: "6.8.2"
 
 dse:
   stage_versions: ["6.7.6"]
-  active_version: "6.7.6"
+  active_version: "6.8.2"
 
 agent:
   stage_versions: ["6.7.6"]
-  active_version: "6.7.6"
+  active_version: "6.8.0"
 
 opscenter:
   stage_versions: ["6.7.6"]
-  active_version: "6.7.6"
+  active_version: "6.8.0"
   authentication: true
 
 java:

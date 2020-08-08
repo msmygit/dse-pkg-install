@@ -4,7 +4,7 @@
   include_vars:
     file: package.yml
 
-# https://docs.datastax.com/en/opscenter/6.7/opsc/reference/opscDebianFileLocate_r.html
+# https://docs.datastax.com/en/opscenter/6.8/opsc/reference/opscDebianFileLocate_r.html
 - name: create some directories - package install
   file: path={{ item }} state=directory owner={{ opscenter_service_account_user }} group={{ opscenter_service_account_group }} mode="0755"
   with_items:

@@ -2,10 +2,10 @@
 Inventory of playbooks and examples used to manage the day to day operational tasks of installing and configuring DataStax Enterprise software suite using package install method.
 
 At end of this exercise, we would have installed the following,
-* DSE `6.7.6` cluster with two datacenters
+* DSE `6.8.3` cluster with two datacenters
 * A 2-node DC1 with _C*_ only workload; A 2-node DC2 with _C* + Analytics_ workload
-* OpsCenter `6.7.6` with an active-passive setup (i.e. 2 VMs in total for running OpsCenter daemon)
-* A 2-node DSE `6.7.6` cluster dedicated for storing OpsCenter collection metrics data of the monitored cluster
+* OpsCenter `6.8.0` with an active-passive setup (i.e. 2 VMs in total for running OpsCenter daemon)
+* A 2-node DSE `6.8.3` cluster dedicated for storing OpsCenter collection metrics data of the monitored cluster
 * Agents installed on all the DSE nodes
 * This playbook covers installation of DSE softwares both `online` and `offline` where, `online` refers to servers having
 internet connectivity and `offline` for servers without internet connectivity
@@ -86,9 +86,9 @@ ansible-playbook -u <username> --ask-pass --ask-become-pass -i inventory/hosts b
 # Optionally use `-v` at the end of the command to run it in verbose mode (or) run it with `--check` option for a trial run (or) use `--syntax-check` to test syntax.
 ```
 
-### Perform a DSE patch upgrade. For e.g. upgrade from `6.7.6` to `6.7.7` version
+### Perform a DSE patch upgrade. For e.g. upgrade from `6.8.2` to `6.8.3` version
 ```
-ansible-playbook -u <username> --ask-pass --ask-become-pass -i inventory/hosts patch-version-upgrade.yml --extra-vars "worker_jobs_killed=<y_or_n> dse_patch_version=<6.7.latest>"
+ansible-playbook -u <username> --ask-pass --ask-become-pass -i inventory/hosts patch-version-upgrade.yml --extra-vars "worker_jobs_killed=<y_or_n> dse_patch_version=<6.8.latest>"
 
 # Optionally use `-v` at the end of the command to run it in verbose mode (or) run it with `--check` option for a trial run (or) use `--syntax-check` to test syntax.
 ```

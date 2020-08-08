@@ -19,7 +19,7 @@ dse_download_username:
 dse_download_password:
 dse_download_local_path: /tmp
 
-dse_version: 6.7.5
+dse_version: 6.8.2
 
 #cassandra-rackdc.properties
 dse_datacenter: dc1
@@ -33,6 +33,7 @@ dse_data_file_directories: /var/lib/cassandra/data
 dse_commitlog_directory: /var/lib/cassandra/commitlog
 dse_cdc_raw_directory: /var/lib/cassandra/cdc_raw
 dse_saved_caches_directory: /var/lib/cassandra/saved_caches
+dse_metadata_directory: /var/lib/cassandra/metadata
 dse_seeds: "{{ groups['clusterseeds'] | join(',') }}"
 dse_listen_address: "{{ ansible_default_ipv4['address'] }}"
 dse_native_transport_address: "{{ ansible_default_ipv4['address'] }}"
@@ -52,7 +53,7 @@ dse_graph_enabled: 0
 dse_solr_enabled: 0
 dse_spark_enabled: 0
 
-#jvm.options
+#jvm-[client|server][8|11].options
 dse_xmx: 4G
 dse_xms: 4G
 dse_parallel_gc_threads: "{{ hostvars[inventory_hostname]['ansible_facts']['processor_cores'] }}"
